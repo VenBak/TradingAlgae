@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "finnhub": "^1.2.16",
+    "inquirer": "^8.2.5",
+    "unix-timestamp": "^1.0.3"
+  }
+}

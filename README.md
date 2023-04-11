@@ -1,1 +1,3 @@
 # TradingAlgae
+
+Not financial advice
