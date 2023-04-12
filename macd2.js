@@ -1,8 +1,8 @@
 // Define the number of days the average will be done over
-const period = 8;
+// const period = 8;
 
-// Sample Data
-const stockData = [
+// // Sample Data
+var stockData = [
     { date: "2022-01-03", close: 100 },
     { date: "2022-01-04", close: 110 },
     { date: "2022-01-05", close: 120 },
@@ -17,7 +17,7 @@ const stockData = [
     { date: "2022-01-18", close: 90 },
     { date: "2022-01-19", close: 80 },
     { date: "2022-01-20", close: 75 },
-    { date: "2022-01-21", close: 70 },
+    { date: "2022-01-21", close: 70 }
 ];
 
 // Real Data
@@ -53,8 +53,65 @@ function checkMarketConditions(stockData) {
     }
 }
 
-const movingAverage = calculateMovingAverage(stockData, period);
-
-console.log(movingAverage);
-checkMarketConditions(stockData);
+function calculateMACD(data, slowEMA = 26, fastEMA = 12, signalEMA = 9) {
+  // Extract closing prices from stock data
+  let closingPrices = data.map(datum => datum.close);
   
+  // Calculate slow and fast EMA
+  let slowEMAArray = calculateEMA(closingPrices, slowEMA);
+  let fastEMAArray = calculateEMA(closingPrices, fastEMA);
+  
+  // Calculate MACD line
+  let MACDArray = [];
+  for (let i = 0; i < closingPrices.length; i++) {
+    MACDArray.push(fastEMAArray[i] - slowEMAArray[i]);
+  }
+  
+  // Calculate signal line using EMA of MACD line
+  let signalLineArray = calculateEMA(MACDArray, signalEMA);
+  
+  return { MACD: MACDArray, signal: signalLineArray };
+}
+
+function calculateEMA(data, period) {
+  let EMAArray = [];
+  let validPeriods = 0;
+  let multiplier = 2 / (period + 1);
+
+  // Calculate first EMA as simple moving average
+  let sum = 0;
+  for (let i = 0; i < period; i++) {
+    if (!isNaN(data[i])) { // check if data[i] is a valid number
+      sum += data[i];
+      validPeriods++;
+    }
+  }
+  let SMA = sum / validPeriods;
+  EMAArray.push(SMA);
+
+  // Calculate subsequent EMAs using multiplier
+  for (let i = period; i < data.length; i++) {
+    if (!isNaN(data[i])) { // check if data[i] is a valid number
+      validPeriods++;
+      let adjustedMultiplier = 2 / (validPeriods + 1);
+      let EMA = (data[i] - EMAArray[i - period]) * adjustedMultiplier + EMAArray[i - period];
+      EMAArray.push(EMA);
+    } else {
+      // Adjust multiplier for skipped period
+      validPeriods++;
+      multiplier = 2 / (validPeriods + 1);
+      EMAArray.push(NaN);
+    }
+  }
+
+  return EMAArray;
+}
+
+
+
+module.exports = {
+    calculateMovingAverage,
+    checkMarketConditions,
+    calculateMACD,
+    calculateEMA
+};
